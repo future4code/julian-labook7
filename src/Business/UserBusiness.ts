@@ -8,6 +8,10 @@ export default class UserBusiness{
         await this.userDatabase.signup(user);
     }
 
+    public async getByEmail(email: string): Promise<any>{
+        const result = await this.userDatabase.getByEmail(email);
+        return result;
+    }
     // // public async approve(id: string){
     // //     await this.userDatabase.approve(id);
     // // }
