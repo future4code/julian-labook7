@@ -1,5 +1,5 @@
 import knex from "knex";
-import BaseDB from "./BaseDB.class";
+import BaseDatabase from "./BaseDatabase";
 
 export interface User {
   id: string;
@@ -8,6 +8,6 @@ export interface User {
   password: string;
 }
 
-export default class UserDB extends BaseDB {
+export default class UserDatabase extends BaseDatabase {
 
 }
