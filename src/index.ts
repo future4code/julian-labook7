@@ -3,14 +3,17 @@ import dotenv from "dotenv";
 import moment from "moment";
 import { AddressInfo } from "net";
 import IdGenerator from "./services/IdGen.class";
-import UserDB, { User } from "./data/UserDB.class";
+import UserDatabase, { User } from "./data/UserDatabase";
 import Authenticator from "./services/Authenticator.class";
 import HashManager from "./services/HashManager.class";
+import userRouter from "./Router/UserRouter";
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+
+app.use("/user", userRouter);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
