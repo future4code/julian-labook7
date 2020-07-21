@@ -1,2 +1,2 @@
-# labook-template
-Repositório do projeto Labook
+Repositório do projeto Labook feito pelos alunos do grupo 07
+
