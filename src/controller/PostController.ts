@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import PostDatabase, { Post } from "../data/PostDatabase";
 import Authenticator from "../services/Authenticator.class";
+import IdGenerator from "../services/IdGen.class";
 
 export class PostController {
     async createNewPost(req: Request, res: Response): Promise<any> {
@@ -11,13 +12,13 @@ export class PostController {
             const creator_id = authenticationData.id;
             const picture = req.body.picture;
             const description = req.body.description;
-            const date = req.body.date
+            const idGenerator = new IdGenerator();            
 
             const post: Post = {
                 creator_id,
                 picture,
                 description,
-                date
+                id: idGenerator.generateId()                
               }
                   
             const postDatabase = new PostDatabase();
@@ -34,5 +35,4 @@ export class PostController {
         }      
     };
 }
-//O post deve ser criado, passando-se as informações de: foto, descrição, 
-//data de criação e tipo ("normal" ou "evento").
+
