@@ -25,7 +25,6 @@ export default class UserDatabase extends BaseDatabase {
       })
       .into(UserDatabase.TABLE_NAME);
 
-    BaseDatabase.destroyConnection();
   };
 
   public getByEmail = async (email: string): Promise<any> => {
@@ -40,6 +39,17 @@ export default class UserDatabase extends BaseDatabase {
     return result[0][0];
   };
 
+  public getById = async (id: string): Promise<any> => {
+    const result = await this.getConnection().raw(
+      `
+      SELECT *
+      FROM ${UserDatabase.TABLE_NAME}
+      WHERE id = "${id}";
+      `
+    );
+
+    return result[0][0];
+  };
   public async createFriend(followed_id: string, follower_id: string): Promise<void> {
     await this.getConnection()
       .insert({ followed_id, follower_id })

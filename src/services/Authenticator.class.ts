@@ -2,18 +2,20 @@ import * as jwt from "jsonwebtoken";
 
 interface AuthenticationData {
   id: string;
+  device?: string;
 }
 export default class Authenticator {
   private static EXPIRES_IN = "10min";
 
-  public generateToken = (input: AuthenticationData): string => {
+  public generateToken = (input: AuthenticationData, expiresIn: string = Authenticator.EXPIRES_IN): string => {
     const token = jwt.sign(
       {
-        id: input.id
+        id: input.id,
+        device: input.device
       },
       process.env.JWT_KEY as string,
       {
-        expiresIn: Authenticator.EXPIRES_IN,
+        expiresIn,
       }
     );
 

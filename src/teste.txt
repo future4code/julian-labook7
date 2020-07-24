@@ -1,0 +1,13 @@
+refreshTokenData:  {
+  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFiMWFhZGMwLTZhODAtNDU0NC04OTcwLWQ0NjMyNWFlOWRkZiIsImRldmljZSI6IkxpbnV4MTIzNCIsImlhdCI6MTU5NTU0ODM0OCwiZXhwIjoxNjU4NjYzNTQ4fQ.GPzGWYihHoL2QiyWxWp0gpYniTO49PwoAtayDyS9ExI',
+  device: 'Linux1234',
+  userId: '1b1aadc0-6a80-4544-8970-d46325ae9ddf',
+  isActive: true
+}
+
+refreshTokenData:  {
+  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjRhYTYxNjM2LTViOGQtNDkyOC05NmVhLTA2MDE4MzNkNmFiYiIsImRldmljZSI6IkxpbnV4MTIzNCIsImlhdCI6MTU5NTU0ODUxNiwiZXhwIjoxNjU4NjYzNzE2fQ.MLGyyR6x7n5AfKoottclRtSDiSE-vNE3DjknlMq5YHU',
+  device: 'Linux1234',
+  userId: '4aa61636-5b8d-4928-96ea-0601833d6abb',
+  isActive: true
+}
