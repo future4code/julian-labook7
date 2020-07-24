@@ -8,6 +8,8 @@ import Authenticator from "./services/Authenticator.class";
 import HashManager from "./services/HashManager.class";
 import userRouter from "./Router/UserRouter";
 import postRouter from "./Router/PostRouter";
+import feedRouter from './Router/FeedRouter';
+
 dotenv.config();
 
 const app = express();
@@ -17,6 +19,8 @@ app.use(express.json());
 app.use("/user", userRouter);
 
 app.use("/post", postRouter);
+
+app.use('/feed', feedRouter);
 
 const server = app.listen(process.env.PORT || 3003, () => {
   if (server) {
