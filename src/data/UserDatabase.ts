@@ -1,12 +1,6 @@
 import knex from "knex";
-import BaseDatabase from "./BaseDatabase";
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-}
+import BaseDatabase from "../model/BaseDatabase";
+import { UserSignupDTO } from "../model/UserDTO"
 
 export default class UserDatabase extends BaseDatabase {
   private static TABLE_NAME: string = "LbkUser";
@@ -15,7 +9,7 @@ export default class UserDatabase extends BaseDatabase {
   private static COLUMN_NAME_FOLLOWED: string = "followed_id";
   private static COLUMN_NAME_FOLLOWER: string = "follower_id"
 
-  public signup = async (user: User): Promise<void> => {
+  public signup = async (user: UserSignupDTO): Promise<void> => {
     await this.getConnection()
       .insert({
         id: user.id,

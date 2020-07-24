@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import moment from "moment";
 import { AddressInfo } from "net";
 import IdGenerator from "./services/IdGen.class";
-import UserDatabase, { User } from "./data/UserDatabase";
+import UserDatabase from "./data/UserDatabase";
 import Authenticator from "./services/Authenticator.class";
 import HashManager from "./services/HashManager.class";
 import userRouter from "./Router/UserRouter";

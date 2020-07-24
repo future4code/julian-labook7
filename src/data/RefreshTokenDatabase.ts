@@ -1,16 +1,10 @@
-import BaseDatabase from "./BaseDatabase";
-
-export interface RefreshTokenData {
-    token: string,
-    device: string,
-    isActive: boolean,
-    userId: string
-}
+import BaseDatabase from "../model/BaseDatabase";
+import { RefreshTokenDTO, TokenDTO } from "../model/RefreshTokenDTO";
 
 export default class RefreshTokenDatabase extends BaseDatabase {
     private static TABLE_NAME = "LbkRefreshToken";
 
-    public create = async(data: RefreshTokenData): Promise<void> => {
+    public create = async(data: RefreshTokenDTO): Promise<void> => {
 
         console.log('started creating');
         await this.getConnection().raw(`
@@ -21,12 +15,12 @@ export default class RefreshTokenDatabase extends BaseDatabase {
         await BaseDatabase.destroyConnection();
 
     }
-    public getData = async(token: string): Promise<RefreshTokenData> => {
+    public getData = async(tokenDTO: TokenDTO): Promise<RefreshTokenDTO> => {
         const result = await this.getConnection().raw(`
         SELECT *
         FROM ${RefreshTokenDatabase.TABLE_NAME}
-        WHERE refresh_token = "${token}"
-        `)
+        WHERE refresh_token = "${tokenDTO.token}"
+      tokenDTO.  `)
 
         const retrievedToken = result[0][0];
 
@@ -40,7 +34,7 @@ export default class RefreshTokenDatabase extends BaseDatabase {
         }
     }
 
-    public getByIdAndDevice = async(id: string, device: string): Promise<RefreshTokenData | undefined> => {
+    public getByIdAndDevice = async(id: string, device: string): Promise<RefreshTokenDTO | undefined> => {
         const result = await this.getConnection().raw(`
         SELECT *
         FROM ${RefreshTokenDatabase.TABLE_NAME}
@@ -64,12 +58,12 @@ export default class RefreshTokenDatabase extends BaseDatabase {
         }
     }
 
-    public delete = async(token: string): Promise<void> => {
+    public delete = async(tokenDTO: TokenDTO): Promise<void> => {
 
         await this.getConnection().raw(`
         DELETE
         FROM ${RefreshTokenDatabase.TABLE_NAME}
-        WHERE refresh_token = "${token}"
+        WHERE refresh_token = "${tokenDTO.token}"
         `);
 
         await BaseDatabase.destroyConnection();

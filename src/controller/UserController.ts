@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import UserBusiness from "../Business/UserBusiness";
-import UserDatabase, { User } from "../data/UserDatabase";
+import UserDatabase from "../data/UserDatabase";
 import IdGenerator from "../services/IdGen.class";
 import Authenticator from "../services/Authenticator.class";
 import HashManager from "../services/HashManager.class";
-import RefreshTokenDatabase, {
-  RefreshTokenData,
-} from "../data/RefreshTokenDatabase";
+import RefreshTokenDatabase from "../data/RefreshTokenDatabase";
+import { UserSignupDTO } from "../model/UserDTO";
+import { TokenDTO, RefreshTokenDTO } from "../model/RefreshTokenDTO";
 
 export class UserController {
   async signup(req: Request, res: Response): Promise<void> {
@@ -21,7 +21,7 @@ export class UserController {
       if (req.body.password.lenght < 6) {
         throw new Error("Invalid password lenght");
       }
-      console.log("Validations passed")
+
       const idGenerator = new IdGenerator();
 
       const id = idGenerator.generateId();
@@ -31,38 +31,36 @@ export class UserController {
         password: req.body.password,
         device: req.body.device,
       };
-      console.log('userData: ', userData);
 
       const hashManager = new HashManager();
       const hashPassword = await hashManager.hash(userData.password);
 
-      const user: User = {
+      const user: UserSignupDTO = {
         id: id,
         name: userData.name,
         email: userData.email,
         password: hashPassword,
       };
-      console.log('user: ', user)
+    
       await userBusiness.signup(user);
 
       const authenticator = new Authenticator();
       const accessToken = authenticator.generateToken({ id }, "10min");
-      console.log("accessToken: ", accessToken)
+
       const refreshToken = authenticator.generateToken(
         { id, device: userData.device },
         "2y"
       );
-        console.log("refreshToken: ", refreshToken);
 
       const refreshTokenDB = new RefreshTokenDatabase();
 
-      const refreshTokenData: RefreshTokenData = {
+      const refreshTokenData: RefreshTokenDTO = {
         token: refreshToken,
         device: req.body.device,
         userId: id,
         isActive: true,
       }
-      console.log('refreshTokenData: ', refreshTokenData)
+
       await refreshTokenDB.create(refreshTokenData);
 
       res
@@ -84,6 +82,10 @@ export class UserController {
         req.body.password.lenght < 6
       ) {
         throw new Error("Invalid credentials");
+      }
+
+      if(!req.body.device){
+        throw new Error("Missing device name")
       }
 
       const user = await userBusiness.getByEmail(req.body.email);
@@ -118,19 +120,20 @@ export class UserController {
         userData.device
       );
 
+      const tokenDTO: TokenDTO = {
+        token: refreshTokenFromDB!.token
+      }
       if (refreshTokenFromDB) {
-        console.log("refreshTokenFromDB: ", refreshTokenFromDB);
-        await refreshTokenDB.delete(refreshTokenFromDB.token);
+        await refreshTokenDB.delete(tokenDTO);
       }
 
-      const refreshTokenData: RefreshTokenData = {
+      const refreshTokenData: RefreshTokenDTO = {
         token: refreshToken,
         device: req.body.device,
         userId: user.id,
         isActive: true,
       }
 
-      console.log("refreshTokenData: ", refreshTokenData)
       await refreshTokenDB.create(refreshTokenData);
 
       res

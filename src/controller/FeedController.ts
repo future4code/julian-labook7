@@ -1,23 +1,22 @@
 import { Request, Response} from  'express';
 import FeedDatabase from '../data/FeedDatabase';
 import Authenticator from '../services/Authenticator.class';
-
+import { UserIdDTO } from "../model/UserDTO";
+import { PostController } from './PostController';
 export class FeedController {
     async getFeed(req: Request, res: Response): Promise<any>{
         try{
                  const token = req.headers.authorization as string;
                  const authenticator = new Authenticator();
                  const authenticationData = authenticator.getData(token);
-                 const userId = authenticationData.id;
-
-                 console.log(userId);
+                 const userIdDTO = { id: authenticationData.id };
                  
-                 if (!userId){
+                 if (!userIdDTO.id){
                      res.status(400).send({message: 'Insira um ID no hearders > token.'})
                  }
 
                   const feedDatabase = new FeedDatabase();
-                  const feed = await feedDatabase.getFeed(userId);
+                  const feed = await feedDatabase.getFeed(userIdDTO);
 
                   res.status(200).send(feed);
 
