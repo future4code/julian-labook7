@@ -4,90 +4,167 @@ import UserDatabase, { User } from "../data/UserDatabase";
 import IdGenerator from "../services/IdGen.class";
 import Authenticator from "../services/Authenticator.class";
 import HashManager from "../services/HashManager.class";
+import RefreshTokenDatabase, {
+  RefreshTokenData,
+} from "../data/RefreshTokenDatabase";
 
 export class UserController {
+  async signup(req: Request, res: Response): Promise<void> {
+    try {
+      const userBusiness: UserBusiness = new UserBusiness();
 
-    async signup(req: Request, res: Response): Promise<void> {
-        const userBusiness: UserBusiness = new UserBusiness();
-        try {
-
-            if (!req.body.name || !req.body.email || !req.body.password) {
-                throw new Error("Invalid input");
-              }
-              if (req.body.email.indexOf("@") === -1) {
-                throw new Error("Invad email address");
-              }
-              if (req.body.password.lenght < 6) {
-                throw new Error("Invalid password lenght");
-              }
-
-            const idGenerator = new IdGenerator();
-
-            const id = idGenerator.generateId();
-            const name = req.body.name;
-            const email = req.body.email;
-
-            const hashManager = new HashManager();
-            const password = req.body.password;
-            const hashPassword = await hashManager.hash(password);
-
-            const user: User = {
-                id,
-                name,
-                email,
-                password: hashPassword
-            }
-
-            await userBusiness.signup(user);
-
-            const authenticator = new Authenticator();
-            const access_token = authenticator.generateToken({ id });
-
-            res.status(200).send({ message: "Usuário criado e logado com sucesso!", access_token });
-        } catch (err) {
-            res.status(400).send({ error: err.message });
-        }
-
-    };
-
-    async login(req: Request, res: Response): Promise<void> {
-        try {
-            const userBusiness: UserBusiness = new UserBusiness();
-
-          if (
-            !req.body.email ||
-            req.body.email.indexOf("@") === -1 ||
-            !req.body.password ||
-            req.body.password.lenght < 6
-          ) {
-            throw new Error("Invalid credentials");
-          }
-      
-          const user = await userBusiness.getByEmail(req.body.email);
-      
-          const data = {
-            email: req.body.email,
-            password: req.body.password
-          };
-      
-          const hashManager = new HashManager();
-          const correctPassword = await hashManager.compare(
-            data.password,
-            user.password
-          );
-      
-          if (!correctPassword) {
-            throw new Error("Invalid password");
-          }
-      
-          const authenticator = new Authenticator();
-          const access_token = authenticator.generateToken({ id: user.id });
-      
-          res.status(200).send({ message: "Usuário logado com sucesso!", access_token });
-        } catch (err) {
-          res.status(400).send({
-            message: err.message,
-          });
-        }
+      if (!req.body.name || !req.body.email || !req.body.password || !req.body.device) {
+        throw new Error("Invalid input");
       }
+      if (req.body.email.indexOf("@") === -1) {
+        throw new Error("Invad email address");
+      }
+      if (req.body.password.lenght < 6) {
+        throw new Error("Invalid password lenght");
+      }
+      console.log("Validations passed")
+      const idGenerator = new IdGenerator();
+
+      const id = idGenerator.generateId();
+      const userData = {
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        device: req.body.device,
+      };
+      console.log('userData: ', userData);
+
+      const hashManager = new HashManager();
+      const hashPassword = await hashManager.hash(userData.password);
+
+      const user: User = {
+        id: id,
+        name: userData.name,
+        email: userData.email,
+        password: hashPassword,
+      };
+      console.log('user: ', user)
+      await userBusiness.signup(user);
+
+      const authenticator = new Authenticator();
+      const accessToken = authenticator.generateToken({ id }, "10min");
+      console.log("accessToken: ", accessToken)
+      const refreshToken = authenticator.generateToken(
+        { id, device: userData.device },
+        "2y"
+      );
+        console.log("refreshToken: ", refreshToken);
+
+      const refreshTokenDB = new RefreshTokenDatabase();
+
+      const refreshTokenData: RefreshTokenData = {
+        token: refreshToken,
+        device: req.body.device,
+        userId: id,
+        isActive: true,
+      }
+      console.log('refreshTokenData: ', refreshTokenData)
+      await refreshTokenDB.create(refreshTokenData);
+
+      res
+        .status(200)
+        .send({ access_token: accessToken, resfresh_token: refreshToken });
+    } catch (err) {
+      res.status(400).send({ error: err.message });
+    }
+  }
+
+  async login(req: Request, res: Response): Promise<void> {
+    try {
+      const userBusiness: UserBusiness = new UserBusiness();
+
+      if (
+        !req.body.email ||
+        req.body.email.indexOf("@") === -1 ||
+        !req.body.password ||
+        req.body.password.lenght < 6
+      ) {
+        throw new Error("Invalid credentials");
+      }
+
+      const user = await userBusiness.getByEmail(req.body.email);
+
+      const userData = {
+        email: req.body.email,
+        password: req.body.password,
+        device: req.body.device,
+      };
+
+      const hashManager = new HashManager();
+      const correctPassword = await hashManager.compare(
+        userData.password,
+        user.password
+      );
+
+      if (!correctPassword) {
+        throw new Error("Invalid password");
+      }
+
+      const authenticator = new Authenticator();
+      const accessToken = authenticator.generateToken({ id: user.id });
+      const refreshToken = authenticator.generateToken(
+        { id: user.id, device: userData.device },
+        "2y"
+      );
+
+      const refreshTokenDB = new RefreshTokenDatabase();
+
+      const refreshTokenFromDB = await refreshTokenDB.getByIdAndDevice(
+        user.id,
+        userData.device
+      );
+
+      if (refreshTokenFromDB) {
+        console.log("refreshTokenFromDB: ", refreshTokenFromDB);
+        await refreshTokenDB.delete(refreshTokenFromDB.token);
+      }
+
+      const refreshTokenData: RefreshTokenData = {
+        token: refreshToken,
+        device: req.body.device,
+        userId: user.id,
+        isActive: true,
+      }
+
+      console.log("refreshTokenData: ", refreshTokenData)
+      await refreshTokenDB.create(refreshTokenData);
+
+      res
+        .status(200)
+        .send({ access_token: accessToken, resfresh_token: refreshToken });
+    } catch (err) {
+      res.status(400).send({
+        message: err.message,
+      });
+    }
+  }
+
+  async getNewAccessToken(req: Request, res: Response): Promise<void> {
+    try {
+      const refreshToken = req.body.refreshToken;
+      const device = req.body.device;
+
+      const authenticator = new Authenticator();
+      const refreshTokenData = authenticator.getData(refreshToken);
+      if (refreshTokenData.device !== device) {
+        throw new Error("Refresh token das no device");
+      }
+
+      const userDB = new UserDatabase();
+      const user = await userDB.getById(refreshTokenData.id);
+
+      const accessToken = authenticator.generateToken({ id: user.id });
+
+      res.status(200).send({ access_token: accessToken });
+    } catch (err) {
+      res.status(400).send({
+        message: err.message,
+      });
+    }
+  }
 }
